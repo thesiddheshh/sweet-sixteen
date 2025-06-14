@@ -1,84 +1,74 @@
+# sweet16_birthday_app/app.py
 import streamlit as st
+import time
 from datetime import datetime
 import pytz
-import time
 import json
 from streamlit_lottie import st_lottie
-import streamlit.components.v1 as components
-from urllib.parse import urlparse, parse_qs
-import base64
+import random
+import os
 
-# ------------------------------
-# Set page config
-# ------------------------------
-st.set_page_config(page_title="🎉 Sweet 16 Countdown", layout="wide")
+# ----------------------------
+# CONFIG
+# ----------------------------
+st.set_page_config(page_title="Sweet 16 Countdown", layout="centered")
 
-# ------------------------------
-# Load Lottie animation
-# ------------------------------
-def load_lottie_file(filepath: str):
-    with open(filepath, "r") as f:
-        return json.load(f)
-
-confetti_animation = load_lottie_file("assets/confetti.json")
-
-# ------------------------------
-# Timezone and birthday
-# ------------------------------
+# Set timezone and birthday
 IST = pytz.timezone("Asia/Kolkata")
 birthday = IST.localize(datetime(2026, 3, 29, 0, 0, 0))
 
-# ------------------------------
-# Developer mode with query param
-# ------------------------------
-query_params = st.experimental_get_query_params()
-dev = query_params.get("dev", [None])[0]
-
-if dev == "siddhesh_supersecret":
-    now = IST.localize(datetime(2026, 3, 29, 0, 0, 1))  # simulate bday
-else:
-    now = datetime.now(IST)
-
-# ------------------------------
-# CSS Styling and Background
-# ------------------------------
+# ----------------------------
+# STYLING
+# ----------------------------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
-
-body {
-    background-image: url("https://i.gifer.com/7efs.gif");
-    background-size: cover;
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap');
+html, body, [class*="css"]  {
     font-family: 'Quicksand', sans-serif;
-    color: #333333;
+    background: url('https://i.pinimg.com/originals/13/f3/5a/13f35a8aeff67c8022fa6f3853db507c.gif') no-repeat center center fixed;
+    background-size: cover;
+    color: #4b004b;
+}
+h1, h2, h3, h4 {
+    color: #8e44ad;
 }
 .countdown {
-    font-size: 2.5rem;
-    text-align: center;
-    margin-top: 20px;
+    font-size: 2.8rem;
     font-weight: bold;
+    color: #ff69b4;
+    text-align: center;
+    margin-bottom: 10px;
 }
 .message {
     font-size: 1.2rem;
     text-align: center;
     color: #6a1b9a;
+    margin-top: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------------------
-# Header
-# ------------------------------
-st.image("stickers/balloon.png", width=80)
-st.title("✨ Counting Down to a Magical Moment… ✨")
-st.image("stickers/star.png", width=80)
+# ----------------------------
+# LOAD LOTTIE
+# ----------------------------
+def load_lottie_file(filepath: str):
+    with open(filepath, "r") as f:
+        return json.load(f)
 
-if now < birthday:
-    time_left = birthday - now
-    days = time_left.days
-    hours, remainder = divmod(time_left.seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
+confetti = load_lottie_file("assets/confetti.json")
 
+# ----------------------------
+# HEADER
+# ----------------------------
+st.markdown("""
+<h1 style='text-align: center;'>🎀 Sweet 16 Countdown 🎀</h1>
+<p class='message'>Counting every moment until the p-day...</p>
+""", unsafe_allow_html=True)
+
+# ----------------------------
+# LIVE COUNTDOWN
+# ----------------------------
+if datetime.now(IST) < birthday:
     countdown_placeholder = st.empty()
     message_placeholder = st.empty()
 
@@ -90,89 +80,106 @@ if now < birthday:
         minutes, seconds = divmod(remainder, 60)
 
         countdown_html = f"""
-        <div class="countdown">
-            {days} Days | {hours} Hours | {minutes} Minutes | {seconds} Seconds
-        </div>
+            <div class='countdown'>
+                {days} Days : {hours} Hours : {minutes} Minutes : {seconds} Seconds
+            </div>
         """
         countdown_placeholder.markdown(countdown_html, unsafe_allow_html=True)
 
+        # Message logic
         if days > 30:
-            msg = "So many days left until your big day!"
+            msg = "Still so many days tsk"
         elif days > 10:
-            msg = f"Only {days} days left until you turn 16!"
+            msg = f"Only {days} days to go until you're 16! 💖"
         elif days >= 1:
-            msg = f"Just {days} days to go! You're almost there 👑"
+            msg = f"Just {days} days to go! It's almost here 👑"
         else:
-            hrs = time_left.seconds // 3600
-            msg = f"Less than {hrs} hours to go! The party's about to start 💖"
+            msg = f"Less than a day left! Get ready to sparkle ✨"
 
         message_placeholder.markdown(f"<p class='message'>{msg}</p>", unsafe_allow_html=True)
         time.sleep(1)
+
 else:
-    st_lottie(confetti_animation, speed=1, height=200, key="confetti")
-    st.markdown("<h1 style='text-align:center;'>🎉 HAPPY 16TH BIRTHDAY!</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; font-size:1.5rem;'>You're a star, never forget that ✨</p>", unsafe_allow_html=True)
+    # ----------------------------
+    # BIRTHDAY UNLOCKED
+    # ----------------------------
+    st_lottie(confetti, speed=1, height=300)
+    st.markdown("""
+    <h1 style='text-align:center;'>🎉 HAPPY SWEET 16!</h1>
+    <p style='text-align:center; font-size:1.5rem;'>Today is your day, and you're loved more than ever 💕</p>
+    """, unsafe_allow_html=True)
 
-    audio_file = open('assets/birthday_song.mp3', 'rb')
-    audio_bytes = audio_file.read()
-    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+    st.audio("assets/birthday_song.mp3", format="audio/mp3", autoplay=True)
 
+    # 🎁 Click to open surprise
     if st.button("🎁 Click to Open Your Gift"):
         st.balloons()
-        st.success("Your gift has been opened!")
+        st.success("Your surprises are here!")
 
-        st.subheader("💌 A Letter Just For You")
+        # 💌 Future Letter
+        st.subheader("💌 A Letter From Your Future Self")
         with open("assets/letter.txt", "r") as f:
             st.write(f.read())
 
+        # 📸 Scrapbook
         st.subheader("📸 Our Memories")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.image("memories/mem1.jpg", use_column_width=True)
-        with col2:
-            st.image("memories/mem2.jpg", use_column_width=True)
-        with col3:
-            st.image("memories/mem3.jpg", use_column_width=True)
+        images = [f"memories/{img}" for img in os.listdir("memories") if img.endswith(".jpg") or img.endswith(".png")]
+        st.image(images, width=300, caption=["Memory" for _ in images])
 
-        st.subheader("🍰 Virtual Birthday Cake!")
-        st.image("assets/cake.gif", use_column_width=True)
+        # 🍰 Cake GIF
+        st.subheader("🍰 Blow the Candle")
+        if st.button("🕯️ Blow Candle"):
+            st.image("assets/cake.gif", use_column_width=True)
 
-        st.subheader("🎧 Sweet 16 Vibes Playlist")
-        st.write("Relax and celebrate with your favorite tunes:")
+        # 🎧 Playlist
+        st.subheader("🎧 Sweet 16 Playlist")
         st.markdown("""
-        <iframe width="100%" height="300" src="https://www.youtube.com/embed/videoseries?list=YOUR_PLAYLIST_ID" frameborder="0" allowfullscreen></iframe>
+        <iframe style='border-radius:12px' src='https://open.spotify.com/embed/playlist/YOUR_PLAYLIST_ID' width='100%' height='380' frameBorder='0' allowfullscreen='' allow='autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture'></iframe>
         """, unsafe_allow_html=True)
 
+        # 🎀 16 Things I Love
         st.subheader("🎀 16 Things I Love About You")
-        love_list = [
-            "You laugh at your own jokes and I love that.",
-            "You make everything feel lighter.",
-            "You're always up for an adventure.",
-            "You dance like nobody’s watching.",
-            "You know how to cheer me up.",
-            "You're the kindest chaos I know.",
-            "You're always honest, even when it’s hard.",
-            "You have the best taste in music.",
-            "You care deeply about people.",
-            "You're brave in ways no one sees.",
-            "You're loyal beyond words.",
-            "You dream big and inspire others.",
-            "You're creative and full of ideas.",
-            "You're growing into someone amazing.",
-            "You're unapologetically YOU.",
-            "You're turning 16 and already shining bright ✨"
-        ]
-        for i, item in enumerate(love_list):
-            st.markdown(f"{i+1}. {item}")
+        with st.container():
+            reasons = [
+                "You laugh at your own jokes!",
+                "You make everything feel better.",
+                "You light up every room.",
+                "You care deeply.",
+                "You're brave beyond measure.",
+                "You're full of life and dreams.",
+                "You have the best hugs.",
+                "You're thoughtful and kind.",
+                "You're effortlessly funny.",
+                "You're my favorite chaos.",
+                "You're honest and real.",
+                "You're the kind of friend I wished for.",
+                "You're magic wrapped in stardust.",
+                "You're beautiful inside out.",
+                "You're stronger than you think.",
+                "You're turning 16 and glowing brighter than ever!"
+            ]
+            for i, reason in enumerate(reasons):
+                st.markdown(f"**{i+1}.** {reason}")
 
-        mood = st.radio("How are you feeling today?", ("💭 Feeling nostalgic", "🥳 Feeling excited"))
-        if mood == "💭 Feeling nostalgic":
-            st.markdown("Let’s take a trip down memory lane...")
-        else:
-            st.markdown("Time to party! 🎉")
+        # 🍪 Fortune Cookie
+        st.subheader("🍪 Open Your Fortune Cookie")
+        if st.button("Crack Cookie"):
+            fortunes = [
+                "You're destined for greatness!",
+                "Magic follows you everywhere.",
+                "You are more loved than you realize.",
+                "Something amazing is on the way.",
+                "You sparkle even when it's dark."
+            ]
+            st.info(random.choice(fortunes))
 
-        if st.button("🍪 Tap to Open Fortune Cookie"):
-            st.info("You are destined for greatness.")
+        # 🧠 Quiz
+        st.subheader("🧠 Sweet 16 Quiz")
+        q1 = st.radio("What’s your comfort food?", ["Pizza", "Ice cream", "Noodles"])
+        q2 = st.radio("Your favorite memory together?", ["Laughing till we cried", "Secret sharing", "Late night talks"])
+        if st.button("Submit Quiz"):
+            st.success("You're 100% unique and 1000% amazing 💜")
 
+# Footer
 st.markdown("---")
-st.markdown("*Made with ❤️ for your Sweet 16 | Powered by Streamlit*")
+st.markdown("<p style='text-align:center;'>Made with ❤️ by your seventh favourite friend</p>", unsafe_allow_html=True)
