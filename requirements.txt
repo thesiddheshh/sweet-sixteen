@@ -1,5 +1,5 @@
 streamlit
 pytz
 streamlit-lottie
-urllib3
-base64-py3
+requests
+pillow
